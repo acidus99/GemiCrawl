@@ -11,7 +11,6 @@ namespace Kennedy.Crawler.Crawling;
 
 public class WebCrawler : IWebCrawler
 {
-    const int StatusIntervalDisk = 60000;
     const int StatusIntervalScreen = 5000;
 
     int CrawlerThreads;
