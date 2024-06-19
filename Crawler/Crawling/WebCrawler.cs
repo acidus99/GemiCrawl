@@ -17,7 +17,6 @@ public class WebCrawler : IWebCrawler
     ThreadSafeCounter TotalUrlsRequested;
     ThreadSafeCounter TotalUrlsProcessed;
 
-
     RejectedUrlLogger rejectionLogger;
     ResponseLogger responseLogger;
 
@@ -217,8 +216,12 @@ public class WebCrawler : IWebCrawler
             responseLogger.LogUrlResponse(response);
             ResultsWarc.AddToQueue(response);
 
-            //if we haven't seen this content before, parse it for links and add them to the frontier
-            if (!seenContentTracker.CheckAndRecord(response))
+            //record this url as now seen, and see if we have seen it before
+            bool seenBefore = seenContentTracker.CheckAndRecord(response);
+
+            //Don't parse proactive links for URLs. This can lead to bugs
+            //e.g. a broken security.txt file that returns a gemtext doc, with relative links, creating a spider trap
+            if (!seenBefore && !entry.IsProactive)
             {
                 FrontierWrapper.AddUrls(entry.DepthFromSeed, ResponseLinkFinder.FindLinks(response));
             }
