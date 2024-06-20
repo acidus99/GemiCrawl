@@ -64,7 +64,7 @@ public class ConnectivityInfo
             return;
         }
 
-        RequestWasSuccessful.Enqueue((response.StatusCode == GeminiParser.ConnectionErrorStatusCode));
+        RequestWasSuccessful.Enqueue((response.StatusCode != GeminiParser.ConnectionErrorStatusCode));
 
         if (RequestWasSuccessful.Count > WindowSize)
         {
@@ -79,7 +79,7 @@ public class ConnectivityInfo
         //if we don't have enough data, its ok to try
         if (requestCount < WindowSize)
         {
-            return true;
+            return false;
         }
 
         float errorCount = RequestWasSuccessful.Where(x => x == false).Count();
