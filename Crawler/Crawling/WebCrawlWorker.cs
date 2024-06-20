@@ -46,7 +46,7 @@ internal class WebCrawlWorker
                 continue;
             }
 
-            GeminiResponse? response = null;
+            GeminiResponse? response;
 
             ConnectivityInfo connectivity = connectivityTracker.GetConnectivityInfo(entry.Url);
 
@@ -70,7 +70,7 @@ internal class WebCrawlWorker
                 Crawler.LogUrlRejection(entry.Url, "Connectivity check failed");
                 //if we got a URL entry, even if it was connectivity issues
                 //we always have to call process on it, so th inflight/being processed counts work out
-                Crawler.ProcessRequestResponse(entry, null);
+                Crawler.ProcessSkippedRequest(entry, SkippedReason.SkippedForConnectivity);
                 continue;
             }
 
@@ -83,7 +83,7 @@ internal class WebCrawlWorker
                 Crawler.LogUrlRejection(entry.Url, "Excluded by Robots.txt");
                 //if we got a URL entry, even if it was rejected for robots reasons,
                 //we always have to call process on it, so th inflight/being processed counts work out
-                Crawler.ProcessRequestResponse(entry, null);
+                Crawler.ProcessSkippedRequest(entry, SkippedReason.SkippedForRobots);
                 continue;
             }
 

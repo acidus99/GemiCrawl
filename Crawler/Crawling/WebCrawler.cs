@@ -194,7 +194,7 @@ public class WebCrawler : IWebCrawler
     private string ComputeSpeed(double curr, double prev, double seconds)
     {
         double requestSec = (curr - prev) / seconds * 1000;
-        return $"{requestSec.ToString("F1")} req / sec";
+        return $"{requestSec:00.0} req / sec";
     }
 
     public void LogUrlRejection(GeminiUrl url, string rejectionType, string specificRule = "")
@@ -208,11 +208,21 @@ public class WebCrawler : IWebCrawler
         TotalUrlsProcessed.Increment();
     }
 
-    public void ProcessRequestResponse(UrlFrontierEntry entry, GeminiResponse? response)
+    public void ProcessRequestResponse(UrlFrontierEntry entry, GeminiResponse response)
+        => ProcessRequestResponseHelper(entry, response, SkippedReason.NotSkipped);
+
+    public void ProcessSkippedRequest(UrlFrontierEntry entry, SkippedReason reason)
+        => ProcessRequestResponseHelper(entry, null, reason);
+
+    private void ProcessRequestResponseHelper(UrlFrontierEntry entry, GeminiResponse? response, SkippedReason reason)
     {
-        //null means it was ignored by robots
-        if (response != null)
+        if(reason == SkippedReason.NotSkipped)
         {
+            if(response == null)
+            {
+                throw new ArgumentNullException(nameof(response), "response was null while skip reason was not skipped!");
+            }
+
             responseLogger.LogUrlResponse(response);
             ResultsWarc.AddToQueue(response);
 
@@ -228,6 +238,7 @@ public class WebCrawler : IWebCrawler
             //add proactive URLs
             FrontierWrapper.AddUrls(entry.DepthFromSeed, ProactiveLinksFinder.FindLinks(response), false);
         }
+
         TotalUrlsProcessed.Increment();
     }
 
