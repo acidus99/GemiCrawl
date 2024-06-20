@@ -39,5 +39,6 @@
     <ProjectReference Include="..\..\Gemini.Net\src\Gemini.Net.csproj" />
     <ProjectReference Include="..\Data\Kennedy.Data.csproj" />
     <ProjectReference Include="..\Warc\Kennedy.Warc.csproj" />
+    <ProjectReference Include="..\SearchIndex\Kennedy.SearchIndex.csproj" />
   </ItemGroup>
 </Project>

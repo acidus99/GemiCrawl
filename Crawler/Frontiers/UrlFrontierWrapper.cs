@@ -1,4 +1,5 @@
 ﻿using Gemini.Net;
+using Kennedy.Crawler.Crawling;
 using Kennedy.Crawler.Filters;
 using Kennedy.Crawler.Logging;
 using Kennedy.Crawler.Utils;
@@ -30,7 +31,7 @@ public class UrlFrontierWrapper
         {
             new DepthFilter(),
             new BlockListFilter(),
-            new DomainLimitFilter(),
+            //new DomainLimitFilter(),
         };
 
         TotalUrls = new ThreadSafeCounter();
@@ -48,6 +49,18 @@ public class UrlFrontierWrapper
         }
         UrlFrontier.AddSeed(seedUrl);
         SeenUrlFilter.MarkAsSeen(seedUrl);
+    }
+
+    public void AddInitialUrl(InitialUrl initialUrl)
+    {
+        UrlFrontier.AddUrl(new UrlFrontierEntry
+        {
+            Url = initialUrl.Url,
+            Priority = initialUrl.Priority,
+            DepthFromSeed = 0
+        });
+
+        SeenUrlFilter.MarkAsSeen(initialUrl.Url);
     }
 
     private void AddUrl(UrlFrontierEntry entry)

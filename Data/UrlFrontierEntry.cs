@@ -4,6 +4,8 @@ namespace Kennedy.Data;
 
 public class UrlFrontierEntry
 {
+    public int Priority { get; set; } = 0;
+
     public required GeminiUrl Url { get; set; }
 
     public bool IsRobotsLimited { get; set; } = false;

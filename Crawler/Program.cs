@@ -1,4 +1,5 @@
 ﻿using Kennedy.Crawler.Crawling;
+using Kennedy.Crawler.Filters;
 
 namespace Kennedy.Crawler;
 
@@ -8,11 +9,13 @@ class Program
     {
         HandleArgs(args);
 
-        var crawler = new WebCrawler(40, 600000);
+        var crawler = new WebCrawler(40, 6000000);
 
-        crawler.AddSeed("gemini://mozz.us/");
-        crawler.AddSeed("gemini://kennedy.gemi.dev/observatory/known-hosts");
-        crawler.AddSeed("gemini://spam.works/");
+        crawler.AddUrlsFromWebDB();
+
+        //crawler.AddSeed("gemini://mozz.us/");
+        //crawler.AddSeed("gemini://kennedy.gemi.dev/observatory/known-hosts");
+        //crawler.AddSeed("gemini://spam.works/");
         crawler.DoCrawl();
 
         return;
@@ -25,14 +28,27 @@ class Program
             CrawlerOptions.OutputBase = args[0];
         }
 
-        CrawlerOptions.OutputBase = CrawlerOptions.OutputBase.Replace("~/", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + '/');
-        if (!CrawlerOptions.OutputBase.EndsWith(Path.DirectorySeparatorChar))
+        CrawlerOptions.OutputBase = ResolveHomePath(CrawlerOptions.OutputBase);
+        ConfirmAndCreateDirectory(CrawlerOptions.OutputBase);
+
+        CrawlerOptions.DocumentIndex = ResolveHomePath(CrawlerOptions.DocumentIndex);
+        ConfirmAndCreateDirectory(CrawlerOptions.DocumentIndex);
+    }
+
+    static string ResolveHomePath(string path)
+        => path.Contains("~/") ?
+            path.Replace("~/", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + '/') :
+            path;
+
+    static void ConfirmAndCreateDirectory(string path)
+    {
+        if (!path.EndsWith(Path.DirectorySeparatorChar))
         {
-            CrawlerOptions.OutputBase += Path.DirectorySeparatorChar;
+            path += Path.DirectorySeparatorChar;
         }
-        if (!Directory.Exists(CrawlerOptions.OutputBase))
+        if (!Directory.Exists(path))
         {
-            Directory.CreateDirectory(CrawlerOptions.OutputBase);
+            Directory.CreateDirectory(path);
         }
     }
 }

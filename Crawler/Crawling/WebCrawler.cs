@@ -89,6 +89,16 @@ public class WebCrawler : IWebCrawler
     public void AddSeed(string url)
         => FrontierWrapper.AddSeed(new GeminiUrl(url));
 
+
+    public void AddUrlsFromWebDB()
+    {
+        InitialUrlSelector selector = new InitialUrlSelector();
+        while (selector.MoveNext())
+        {
+            FrontierWrapper.AddInitialUrl(selector.Current);
+        }
+    }
+
     public void DoCrawl()
     {
         RobotsChecker.Global.Crawler = this;

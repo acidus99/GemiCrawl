@@ -19,7 +19,8 @@ internal class UrlQueue
 
     public void AddUrl(UrlFrontierEntry entry)
     {
-        var priority = GetPriority(entry);
+        int priority = entry.Priority;
+
         lock (locker)
         {
             queue.Enqueue(entry, priority);
@@ -36,7 +37,7 @@ internal class UrlQueue
         //Force protactive requests to have a higher initial prioroty, so the very early pages of a capsule
         //are queued and fetched ahead of the proactive ones. These early pages have a ton of URLs, so this
         //will fill up queues more quickly and reduces how quickly the crawler "warms up".
-        if(entry.IsProactive && priority < 100)
+        if (entry.IsProactive && priority < 100)
         {
             return 100;
         }
@@ -46,9 +47,9 @@ internal class UrlQueue
     private int CountDirectories(string path)
     {
         int ret = 0;
-        foreach(char c in path)
+        foreach (char c in path)
         {
-            if(c == '/')
+            if (c == '/')
             {
                 ret++;
             }
