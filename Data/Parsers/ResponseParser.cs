@@ -49,7 +49,7 @@ public class ResponseParser
             return parsedResponse;
         }
 
-        //fail back on binary
+        //fall back on binary
         return new ParsedResponse(resp)
         {
             FormatType = ContentType.Binary
