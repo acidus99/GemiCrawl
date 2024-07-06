@@ -42,6 +42,13 @@ public class WebDatabase : IWebDatabase
         seenUrls.Clear();
     }
 
+    public void RemoveUrl(long urlID)
+    {
+        bulkContext.Database.ExecuteSql($"DELETE From Documents WHERE UrlId = {urlID}");
+        //delete any links
+        bulkContext.Database.ExecuteSql($"DELETE From Links WHERE SourceUrlId = {urlID}");
+    }
+
     /// <summary>
     /// Stores a response in our web database. 
     /// </summary>

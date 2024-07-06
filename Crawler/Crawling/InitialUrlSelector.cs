@@ -25,7 +25,7 @@ internal class InitialUrlSelector : IDisposable
     public bool MoveNext()
     {
 
-        while(_enumerator.MoveNext())
+        if (_enumerator.MoveNext())
         {
             Document doc = _enumerator.Current;
             //TODO: add check for never visited URLs here
@@ -34,6 +34,7 @@ internal class InitialUrlSelector : IDisposable
                 Current = new InitialUrl(doc.GeminiUrl, 10);
                 return true;
             }
+
 
             int age = Convert.ToInt32(DateTime.Now.Subtract(doc.LastVisit).TotalDays);
 
@@ -44,8 +45,9 @@ internal class InitialUrlSelector : IDisposable
                     Current = new InitialUrl(doc.GeminiUrl, 20);
                     return true;
                 }
-                //too new, continue;
-                continue;
+                //too new, skip;
+                Current = InitialUrl.CreateSkipped(doc.GeminiUrl);
+                return true;
             }
 
             if (age > 90)
@@ -54,9 +56,10 @@ internal class InitialUrlSelector : IDisposable
                 return true;
             }
 
-            //too new, continue
+            //catch all
+            Current = InitialUrl.CreateSkipped(doc.GeminiUrl);
+            return true;
         }
-
         return false;
     }
 
@@ -84,9 +87,22 @@ public class InitialUrl
     {
         Url = url;
         Priority = priority;
+        ShouldRequest = true;
     }
 
     public int Priority { get; set; }
     public GeminiUrl Url { get; set; }
+
+    public bool ShouldRequest { get; private set; }
+
+
+    public static InitialUrl CreateSkipped(GeminiUrl url)
+    {
+        return new InitialUrl(url, -1)
+        {
+            ShouldRequest = false,
+        };
+    }
+
 }
 

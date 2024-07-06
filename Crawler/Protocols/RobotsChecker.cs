@@ -95,7 +95,7 @@ public class RobotsChecker
         {
             var requestUrl = new GeminiUrl(robotsUrl + "?kennedy-crawler");
 
-            var resp = requestor.Request(requestUrl, ipAddress);
+            GeminiResponse resp = requestor.Request(requestUrl, ipAddress);
 
             if (Crawler != null)
             {

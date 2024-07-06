@@ -53,13 +53,17 @@ public class UrlFrontierWrapper
 
     public void AddInitialUrl(InitialUrl initialUrl)
     {
-        UrlFrontier.AddUrl(new UrlFrontierEntry
+        if (initialUrl.ShouldRequest)
         {
-            Url = initialUrl.Url,
-            Priority = initialUrl.Priority,
-            DepthFromSeed = 0
-        });
 
+            UrlFrontier.AddUrl(new UrlFrontierEntry
+            {
+                Url = initialUrl.Url,
+                Priority = initialUrl.Priority,
+                DepthFromSeed = 0
+            });
+        }
+        //if we are skipping it, still add it as seen so we don't discovery it and add it to our queue
         SeenUrlFilter.MarkAsSeen(initialUrl.Url);
     }
 

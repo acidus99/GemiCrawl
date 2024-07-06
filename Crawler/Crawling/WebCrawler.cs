@@ -25,15 +25,16 @@ public class WebCrawler : IWebCrawler
     bool HitUrlLimit
         => (TotalUrlsRequested.Count >= UrlLimit);
 
+    ResponseParser responseParser;
+
     IUrlFrontier UrlFrontier;
     UrlFrontierWrapper FrontierWrapper;
 
-    ILinksFinder ResponseLinkFinder;
     ILinksFinder ProactiveLinksFinder;
 
     SeenContentTracker seenContentTracker;
 
-    ResultsWriter ResultsWarc;
+    ResultsWriter ResultsWriter;
 
     Stopwatch CrawlerStopwatch;
 
@@ -64,9 +65,10 @@ public class WebCrawler : IWebCrawler
         seenContentTracker = new SeenContentTracker();
 
         ProactiveLinksFinder = new ProactiveLinksFinder();
-        ResponseLinkFinder = new ResponseLinkFinder();
 
-        ResultsWarc = new ResultsWriter(CrawlerOptions.WarcDir);
+        responseParser = new ResponseParser();
+
+        ResultsWriter = new ResultsWriter(CrawlerOptions.WarcDir, CrawlerOptions.DocumentIndex);
 
         CrawlerStopwatch = new Stopwatch();
 
@@ -169,7 +171,7 @@ public class WebCrawler : IWebCrawler
             Thread.Sleep(10000);
             if (KeepWorkersAlive)
             {
-                ResultsWarc.Flush();
+                ResultsWriter.Flush();
             }
         } while (KeepWorkersAlive);
     }
@@ -178,7 +180,7 @@ public class WebCrawler : IWebCrawler
     {
         CrawlerStopwatch.Stop();
         rejectionLogger.Close();
-        ResultsWarc.Close();
+        ResultsWriter.Close();
     }
 
     private void SpawnCrawlThreads()
@@ -214,7 +216,9 @@ public class WebCrawler : IWebCrawler
     {
         TotalUrlsRequested.Increment();
         responseLogger.LogUrlResponse(response);
-        ResultsWarc.AddToQueue(response);
+
+        var parsedResponse = responseParser.Parse(response);
+        ResultsWriter.AddResponse(parsedResponse);
         TotalUrlsProcessed.Increment();
     }
 
@@ -226,15 +230,17 @@ public class WebCrawler : IWebCrawler
 
     private void ProcessRequestResponseHelper(UrlFrontierEntry entry, GeminiResponse? response, SkippedReason reason)
     {
-        if(reason == SkippedReason.NotSkipped)
+        if (reason == SkippedReason.NotSkipped)
         {
-            if(response == null)
+            if (response == null)
             {
                 throw new ArgumentNullException(nameof(response), "response was null while skip reason was not skipped!");
             }
 
+            ParsedResponse parsedResponse = responseParser.Parse(response);
+
             responseLogger.LogUrlResponse(response);
-            ResultsWarc.AddToQueue(response);
+            ResultsWriter.AddResponse(parsedResponse);
 
             //record this url as now seen, and see if we have seen it before
             bool seenBefore = seenContentTracker.CheckAndRecord(response);
@@ -243,10 +249,14 @@ public class WebCrawler : IWebCrawler
             //e.g. a broken security.txt file that returns a gemtext doc, with relative links, creating a spider trap
             if (!seenBefore && !entry.IsProactive)
             {
-                FrontierWrapper.AddUrls(entry.DepthFromSeed, ResponseLinkFinder.FindLinks(response));
+                FrontierWrapper.AddUrls(entry.DepthFromSeed, parsedResponse.Links);
             }
             //add proactive URLs
             FrontierWrapper.AddUrls(entry.DepthFromSeed, ProactiveLinksFinder.FindLinks(response), false);
+        }
+        else
+        {
+            ResultsWriter.AddSkippedUrlResponse(entry.Url, reason);
         }
 
         TotalUrlsProcessed.Increment();

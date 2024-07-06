@@ -1,26 +1,36 @@
 ﻿using System.Collections.Concurrent;
 using Gemini.Net;
+using Kennedy.Data;
+using Kennedy.Crawler.Crawling;
+using Kennedy.SearchIndex;
 using Kennedy.Warc;
 using WarcDotNet;
 
 namespace Kennedy.Crawler;
 
 /// <summary>
-/// Holds responses and flushes them to a WARC file
+/// Holds responses and flushes them to a WARC file and the search index
 /// </summary>
 public class ResultsWriter
 {
     const int MaxUninterestingFileSize = 10 * 1024;
 
-    ConcurrentQueue<GeminiResponse> responses;
+    ConcurrentQueue<ParsedResponse> responses;
+    ConcurrentQueue<GeminiUrl> skippedRequests;
     GeminiWarcCreator warcCreator;
+
+    SearchStorageWrapper searchWrapper;
+
 
     public int Saved { get; private set; }
 
-    public ResultsWriter(string warcDirectory)
+    public ResultsWriter(string warcDirectory, string documentIndex)
     {
+        searchWrapper = new SearchStorageWrapper(documentIndex);
+
         Saved = 0;
-        responses = new ConcurrentQueue<GeminiResponse>();
+        responses = new ConcurrentQueue<ParsedResponse>();
+        skippedRequests = new ConcurrentQueue<GeminiUrl>();
         warcCreator = new GeminiWarcCreator(warcDirectory + DateTime.Now.ToString("yyyy-MM-dd") + ".warc.gz");
         warcCreator.WriteWarcInfo(new WarcInfoFields
         {
@@ -31,15 +41,30 @@ public class ResultsWriter
         });
     }
 
-    public void AddToQueue(GeminiResponse response)
-        => responses.Enqueue(response);
+    public void AddResponse(ParsedResponse parsedResponse)
+        => responses.Enqueue(parsedResponse);
+
+    public void AddSkippedUrlResponse(GeminiUrl url, SkippedReason reason)
+    {
+        //Only URLs which were skipped because of Robots need to possibly be removed from the search index
+        if(reason == SkippedReason.SkippedForRobots)
+        {
+            skippedRequests.Enqueue(url);
+        }
+    }
 
     public void Flush()
     {
-        GeminiResponse? response;
-        while (responses.TryDequeue(out response))
+        ParsedResponse? parsedResponse;
+        while (responses.TryDequeue(out parsedResponse))
         {
-            WriteResponseToWarc(response);
+            WriteResponseToSearchIndex(parsedResponse);
+            WriteResponseToWarc(parsedResponse);
+        }
+        GeminiUrl? url;
+        while (skippedRequests.TryDequeue(out url))
+        {
+            searchWrapper.RemoveUrl(url);
         }
     }
 
@@ -47,6 +72,8 @@ public class ResultsWriter
     {
         Flush();
         warcCreator.Dispose();
+        searchWrapper.FinalizeStores();
+        searchWrapper.DoGlobalWork();
     }
 
     private void WriteResponseToWarc(GeminiResponse response)
@@ -54,6 +81,11 @@ public class ResultsWriter
         GeminiResponse optimizedResponse = OptimizeForStoage(response);
         warcCreator.WriteSession(optimizedResponse);
         Saved++;
+    }
+
+    private void WriteResponseToSearchIndex(ParsedResponse parsedResponse)
+    {
+        searchWrapper.StoreResponse(parsedResponse);
     }
 
     private GeminiResponse OptimizeForStoage(GeminiResponse response)

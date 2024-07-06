@@ -13,6 +13,8 @@ public interface IWebDatabase
     /// <returns>true if the response's content changed</returns>
     FtsIndexAction StoreResponse(ParsedResponse parsedResponse);
 
+    void RemoveUrl(long urlID);
+
     void FinalizeStores();
 }
 

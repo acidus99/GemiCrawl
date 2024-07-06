@@ -49,7 +49,9 @@ public class SearchDatabase : ISearchDatabase
                     {
                         using (var db = GetContext())
                         {
+                            
                             db.Database.ExecuteSql($"INSERT INTO FTS(ROWID, Title, Body) VALUES ({parsedResponse.RequestUrl.ID}, {textResponse.Title}, {textResponse.IndexableText!})");
+                            
                         }
                     }
                     return;

@@ -102,4 +102,10 @@ public class SearchStorageWrapper
         SearchDB.UpdateIndex(action, response);
         searchWatch.Stop();
     }
+
+    public void RemoveUrl(GeminiUrl url)
+    {
+        WebDB.RemoveUrl(url.ID);
+        SearchDB.RemoveFromIndex(url.ID);
+    }
 }
