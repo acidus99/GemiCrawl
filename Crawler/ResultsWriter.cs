@@ -24,9 +24,9 @@ public class ResultsWriter
 
     public int Saved { get; private set; }
 
-    public ResultsWriter(string warcDirectory, string documentIndex)
+    public ResultsWriter(string warcDirectory, SearchStorageWrapper search)
     {
-        searchWrapper = new SearchStorageWrapper(documentIndex);
+        searchWrapper = search;
 
         Saved = 0;
         responses = new ConcurrentQueue<ParsedResponse>();

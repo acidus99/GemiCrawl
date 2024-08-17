@@ -98,8 +98,9 @@ public class UrlFrontierWrapper
         result = SeenUrlFilter.IsUrlAllowed(entry);
         if (result.IsAllowed)
         {
+            entry.IsNewUrl = true;
             //all allowed, pass it to the UrlFrontier
-            PassedUrls.Increment();
+           PassedUrls.Increment();
             UrlFrontier.AddUrl(entry);
         }
         //no need to log seen URLs, since that is a ton of links
