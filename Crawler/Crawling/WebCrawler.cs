@@ -30,6 +30,9 @@ public class WebCrawler : IWebCrawler
     IUrlFrontier UrlFrontier;
     UrlFrontierWrapper FrontierWrapper;
 
+    ResponseParser responseParser;
+
+    ILinksFinder ResponseLinkFinder;
     ILinksFinder ProactiveLinksFinder;
 
     SeenContentTracker seenContentTracker;
@@ -67,7 +70,6 @@ public class WebCrawler : IWebCrawler
         ProactiveLinksFinder = new ProactiveLinksFinder();
 
         responseParser = new ResponseParser();
-
         ResultsWriter = new ResultsWriter(CrawlerOptions.WarcDir, CrawlerOptions.DocumentIndex);
 
         CrawlerStopwatch = new Stopwatch();
@@ -82,6 +84,18 @@ public class WebCrawler : IWebCrawler
         return info.FullName + "/stop";
     }
 
+    private void DrainFrontierToDisk()
+    {
+        using (var fout = new StreamWriter(CrawlerOptions.RemainingUrlsLog, false))
+        {
+            UrlFrontierEntry? entry;
+            while ((entry = UrlFrontier.DrainQueue()) != null)
+            {
+                fout.WriteLine(entry.Url);
+            }
+        }
+    }
+
     private void ConfigureDirectories()
     {
         Directory.CreateDirectory(CrawlerOptions.WarcDir);
@@ -89,7 +103,29 @@ public class WebCrawler : IWebCrawler
     }
 
     public void AddSeed(string url)
-        => FrontierWrapper.AddSeed(new GeminiUrl(url));
+    {
+        try
+        {
+            FrontierWrapper.AddSeed(new GeminiUrl(url));
+        }
+        catch (UriFormatException)
+        {
+            //some entries in the seeds file might be invalid URLs, just ignore them
+            Console.WriteLine($"Skipping invalid seed URL {url}");
+        }
+    }
+
+    public void AddSeedsFromFile(string filename)
+    {
+        using (StreamReader fin = new StreamReader(filename))
+        {
+            string? line;
+            while ((line = fin.ReadLine()) != null)
+            {
+                AddSeed(line);
+            }
+        }
+    }
 
 
     public void AddUrlsFromWebDB()
@@ -122,6 +158,7 @@ public class WebCrawler : IWebCrawler
 
         } while (KeepWorkersAlive);
 
+        CrawlerStopwatch.Stop();
         Console.WriteLine("COMPLETE!");
         Console.WriteLine($"Elapsed: {CrawlerStopwatch.Elapsed}\tTotal Requested: {TotalUrlsRequested.Count}\tTotal Processed: {TotalUrlsProcessed.Count}\tRemaining: {UrlFrontier.Count}");
         FinalizeCrawl();
@@ -178,7 +215,7 @@ public class WebCrawler : IWebCrawler
 
     private void FinalizeCrawl()
     {
-        CrawlerStopwatch.Stop();
+        DrainFrontierToDisk();
         rejectionLogger.Close();
         ResultsWriter.Close();
     }
@@ -300,5 +337,4 @@ public class WebCrawler : IWebCrawler
 
     public bool KeepWorkersAlive
         => (HasUrlsToFetch || (WorkInFlight > 0));
-
 }

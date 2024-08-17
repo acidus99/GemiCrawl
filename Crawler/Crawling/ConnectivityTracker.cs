@@ -40,6 +40,7 @@ public class ConnectivityInfo
     /// tracks whether recent requests were successful or not
     /// </summary>
     Queue<bool> RequestWasSuccessful;
+
     float totalRequests;
     float errorRequests;
 
@@ -101,6 +102,9 @@ public class ConnectivityInfo
                 return true;
 
             if (response.Meta == "Connection refused")
+                return true;
+
+            if (response.Meta.StartsWith("Authentication failed, see inner exception"))
                 return true;
         }
         return false;

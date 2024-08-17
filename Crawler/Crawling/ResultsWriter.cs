@@ -6,7 +6,7 @@ using Kennedy.SearchIndex;
 using Kennedy.Warc;
 using WarcDotNet;
 
-namespace Kennedy.Crawler;
+namespace Kennedy.Crawler.Crawling;
 
 /// <summary>
 /// Holds responses and flushes them to a WARC file and the search index
@@ -20,7 +20,6 @@ public class ResultsWriter
     GeminiWarcCreator warcCreator;
 
     SearchStorageWrapper searchWrapper;
-
 
     public int Saved { get; private set; }
 
