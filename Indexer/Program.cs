@@ -16,6 +16,7 @@ class Program
     /// <param name="args"></param>
     static void Main(string[] args)
     {
+
         IndexerOptions options = ParseOptions(args);
         ValidateOptions(options);
         DisplaySummary(options);

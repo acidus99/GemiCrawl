@@ -24,7 +24,7 @@ public class GeminiWarcProcessor
             var geminiResponse = GetGeminiResponse((record as ResponseRecord)!);
             if (geminiResponse != null)
             {
-                foreach(IGeminiRecordProcessor recordProcessor in RecordProcessors)
+                foreach (IGeminiRecordProcessor recordProcessor in RecordProcessors)
                 {
                     recordProcessor.ProcessGeminiResponse(geminiResponse);
                 }

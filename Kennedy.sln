@@ -30,6 +30,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kennedy.Warc", "Warc\Kenned
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Warc.Net", "..\Warc.Net\Warc.Net.csproj", "{A2A6B68E-2220-495E-BEA0-64F23B922481}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scanner", "Scanner\Kennedy.Scanner.csproj", "{0705FC04-D7A0-4695-A104-D6F993101EF7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -80,6 +82,10 @@ Global
 		{A2A6B68E-2220-495E-BEA0-64F23B922481}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A2A6B68E-2220-495E-BEA0-64F23B922481}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A2A6B68E-2220-495E-BEA0-64F23B922481}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0705FC04-D7A0-4695-A104-D6F993101EF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0705FC04-D7A0-4695-A104-D6F993101EF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0705FC04-D7A0-4695-A104-D6F993101EF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0705FC04-D7A0-4695-A104-D6F993101EF7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
